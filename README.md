@@ -1,7 +1,8 @@
 # The Daily Phrontistery 🏛️📖
 
 > **An atmospheric fine-art and rare lexicon New Tab extension (Chrome Manifest V3) and scholarly web application.**  
-> *Transform every new browser tab into a contemplative thinking-place paired with public domain museum masterworks.*
+> *Transform every new browser tab into a contemplative thinking-place paired with public domain museum masterworks.*  
+> **Version:** `v2.1.0` · [View Release Notes](RELEASE_NOTES.md)
 
 ---
 

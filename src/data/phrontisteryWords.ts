@@ -11,18 +11,39 @@ export interface RawWord {
   custom?: boolean;
 }
 
-// 17,392 words bundled in the dictionary
+// 17,004 words bundled in the dictionary
 export const RAW_PHRONTISTERY_WORDS: RawWord[] = hugeWordsList as RawWord[];
+
+// Fast lookup set of all core built-in words in lowercase
+const builtInWordSet = new Set<string>();
+for (let i = 0; i < RAW_PHRONTISTERY_WORDS.length; i++) {
+  builtInWordSet.add(RAW_PHRONTISTERY_WORDS[i].word.toLowerCase());
+}
 
 // In-memory cache for enriched words so we only compute phonetics & gists on-demand
 const enrichedCache = new Map<string, PhrontisteryWord>();
 
-function getCustomWords(): PhrontisteryWord[] {
+export function getCustomWords(): PhrontisteryWord[] {
   try {
     const stored = localStorage.getItem('phrontistery_custom_words');
     if (stored) {
       const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed)) return parsed;
+      if (Array.isArray(parsed)) {
+        // Strict duplicate safeguard: filter out any word that is already in built-in lexicon
+        // or duplicated within custom list
+        const seen = new Set<string>();
+        const uniqueCustom: PhrontisteryWord[] = [];
+        for (const item of parsed) {
+          if (!item || !item.word) continue;
+          const lower = item.word.toLowerCase().trim();
+          if (builtInWordSet.has(lower) || seen.has(lower)) {
+            continue; // Skip duplicate!
+          }
+          seen.add(lower);
+          uniqueCustom.push(item);
+        }
+        return uniqueCustom;
+      }
     }
   } catch {}
   return [];

@@ -8,6 +8,8 @@ import {
   getAllPhrontisteryWords,
   clearWordsCache,
   enrichWord,
+  getCustomWords,
+  RAW_PHRONTISTERY_WORDS,
 } from './data/phrontisteryWords';
 import { GIST_THEMES, getArtworkForGist } from './utils/themeAndGist';
 import { SVG_ARTWORKS } from './utils/svgArtworks';
@@ -257,13 +259,25 @@ export default function App() {
       throw new Error('JSON must be an array of word objects.');
     }
 
-    const validated: PhrontisteryWord[] = [];
+    const builtInWords = new Set(RAW_PHRONTISTERY_WORDS.map((w) => w.word.toLowerCase()));
+    const existingCustom = getCustomWords();
+    const existingCustomWords = new Set(existingCustom.map((w) => w.word.toLowerCase()));
+
+    const newlyAdded: PhrontisteryWord[] = [];
+    let duplicateCount = 0;
+
     for (const item of parsed) {
       if (item && typeof item.word === 'string' && typeof item.definition === 'string') {
-        validated.push(
+        const lower = item.word.toLowerCase().trim();
+        if (builtInWords.has(lower) || existingCustomWords.has(lower)) {
+          duplicateCount++;
+          continue; // Guard against duplicates!
+        }
+        existingCustomWords.add(lower);
+        newlyAdded.push(
           enrichWord({
-            word: item.word,
-            definition: item.definition,
+            word: item.word.trim(),
+            definition: item.definition.trim(),
             part_of_speech: item.part_of_speech || 'noun',
             custom: true,
           })
@@ -271,12 +285,13 @@ export default function App() {
       }
     }
 
-    if (validated.length === 0) {
+    if (newlyAdded.length === 0 && duplicateCount === 0) {
       throw new Error('No valid {word, definition} entries found.');
     }
 
-    // Persist custom words in localStorage
-    localStorage.setItem('phrontistery_custom_words', JSON.stringify(validated));
+    const updatedCustom = [...existingCustom, ...newlyAdded];
+    // Persist deduplicated custom words in localStorage
+    localStorage.setItem('phrontistery_custom_words', JSON.stringify(updatedCustom));
     clearWordsCache();
     const newTotal = getTotalWordsCount();
     setTotalWordsCount(newTotal);

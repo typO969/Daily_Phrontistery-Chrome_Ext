@@ -131,14 +131,22 @@ export const TopBar: React.FC<TopBarProps> = ({
           <span>Layout Studio</span>
         </button>
 
-        <button
-          onClick={onExportExtension}
-          className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-sans-ui text-stone-300 hover:text-amber-200 hover:bg-white/10 rounded-lg transition-colors border border-transparent hover:border-white/10 whitespace-nowrap"
-          title="Download Manifest V3 Chrome Extension package"
+        <a
+          href="/daily-phrontistery-extension.zip"
+          download="daily-phrontistery-chrome-extension-v2.1.0.zip"
+          onClick={(e) => {
+            // Also call exporter function if available
+            if (onExportExtension) {
+              e.preventDefault();
+              onExportExtension();
+            }
+          }}
+          className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-sans-ui text-stone-300 hover:text-amber-200 hover:bg-white/10 rounded-lg transition-colors border border-transparent hover:border-white/10 whitespace-nowrap cursor-pointer"
+          title="Download Manifest V3 Chrome Extension package (v2.1.0)"
         >
           <Download className="w-3.5 h-3.5" />
           <span>Export .zip</span>
-        </button>
+        </a>
 
         {onOpenColophon && (
           <button
