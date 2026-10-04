@@ -39,29 +39,41 @@
   font-family: var(--font-mono);
 }
 
-/* Subtle Slow Ambient Ken Burns Animation */
+/* Subtle Slow Ambient Ken Burns Animation with Hardware Acceleration */
 @keyframes kenburns-drift {
   0% {
-    transform: scale(1.0) translate(0%, 0%);
+    transform: scale3d(1.0, 1.0, 1) translate3d(0%, 0%, 0);
   }
   50% {
-    transform: scale(1.08) translate(-1.8%, -1.2%);
+    transform: scale3d(1.04, 1.04, 1) translate3d(-1.2%, -0.8%, 0);
   }
   100% {
-    transform: scale(1.03) translate(1.2%, 0.8%);
+    transform: scale3d(1.01, 1.01, 1) translate3d(0.8%, 0.5%, 0);
   }
 }
 
 .animate-ken-burns-gentle {
-  animation: kenburns-drift 28s ease-in-out infinite alternate;
+  animation: kenburns-drift 32s ease-in-out infinite alternate;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  perspective: 1000px;
 }
 
 .animate-ken-burns-normal {
-  animation: kenburns-drift 14s ease-in-out infinite alternate;
+  animation: kenburns-drift 16s ease-in-out infinite alternate;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  perspective: 1000px;
 }
 
 .animate-ken-burns {
-  animation: kenburns-drift 24s ease-in-out infinite alternate;
+  animation: kenburns-drift 28s ease-in-out infinite alternate;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  perspective: 1000px;
 }
 
 @keyframes gentle-pulse {

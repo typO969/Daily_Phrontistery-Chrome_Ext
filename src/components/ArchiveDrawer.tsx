@@ -26,6 +26,7 @@ export const ArchiveDrawer: React.FC<ArchiveDrawerProps> = ({
   const [activeTab, setActiveTab] = useState<'all' | 'favorites' | 'history'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGist, setSelectedGist] = useState<SemanticGist | 'all'>('all');
+  const [displayCount, setDisplayCount] = useState(50);
 
   const filteredWords = useMemo(() => {
     let pool = words;
@@ -48,6 +49,15 @@ export const ArchiveDrawer: React.FC<ArchiveDrawerProps> = ({
 
     return pool;
   }, [words, favorites, history, activeTab, selectedGist, searchQuery]);
+
+  // Reset display count on filter change
+  React.useEffect(() => {
+    setDisplayCount(50);
+  }, [activeTab, searchQuery, selectedGist]);
+
+  const visibleWords = useMemo(() => {
+    return filteredWords.slice(0, displayCount);
+  }, [filteredWords, displayCount]);
 
   if (!isOpen) return null;
 
@@ -148,57 +158,70 @@ export const ArchiveDrawer: React.FC<ArchiveDrawerProps> = ({
               <p>No words match your current query.</p>
             </div>
           ) : (
-            filteredWords.map((item) => {
-              const isFav = favorites.includes(item.word.toLowerCase());
-              return (
-                <div
-                  key={item.word}
-                  className="py-3 px-2 rounded-lg hover:bg-white/5 transition-colors flex items-start justify-between gap-3 group"
-                >
+            <>
+              {visibleWords.map((item) => {
+                const isFav = favorites.includes(item.word.toLowerCase());
+                return (
                   <div
-                    onClick={() => {
-                      onSelectWord(item.word);
-                      onClose();
-                    }}
-                    className="flex-1 cursor-pointer"
+                    key={item.word}
+                    className="py-3 px-2 rounded-lg hover:bg-white/5 transition-colors flex items-start justify-between gap-3 group"
                   >
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-serif font-bold text-base text-stone-100 group-hover:text-amber-300 transition-colors capitalize">
-                        {item.word}
-                      </span>
-                      <span className="text-[10px] font-sans-ui text-stone-400 uppercase tracking-wider">
-                        {formatPartOfSpeech(item.part_of_speech)}
-                      </span>
-                      {item.origin_language && (
-                        <span className="text-[10px] text-stone-500">· {item.origin_language}</span>
-                      )}
+                    <div
+                      onClick={() => {
+                        onSelectWord(item.word);
+                        onClose();
+                      }}
+                      className="flex-1 cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-serif font-bold text-base text-stone-100 group-hover:text-amber-300 transition-colors capitalize">
+                          {item.word}
+                        </span>
+                        <span className="text-[10px] font-sans-ui text-stone-400 uppercase tracking-wider">
+                          {formatPartOfSpeech(item.part_of_speech)}
+                        </span>
+                        {item.origin_language && (
+                          <span className="text-[10px] text-stone-500">· {item.origin_language}</span>
+                        )}
+                      </div>
+                      <p className="text-xs text-stone-300 font-editorial-body line-clamp-2">
+                        {item.definition}
+                      </p>
                     </div>
-                    <p className="text-xs text-stone-300 font-editorial-body line-clamp-2">
-                      {item.definition}
-                    </p>
-                  </div>
 
-                  <div className="flex items-center gap-1.5 shrink-0 pt-1">
-                    <button
-                      onClick={() => speakWord(item.word)}
-                      className="p-1.5 text-stone-500 hover:text-stone-300 transition-colors rounded"
-                      title="Pronounce"
-                    >
-                      <Volume2 className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => onToggleFavorite(item.word)}
-                      className={`p-1.5 transition-colors rounded ${
-                        isFav ? 'text-amber-400' : 'text-stone-500 hover:text-stone-300'
-                      }`}
-                      title={isFav ? 'Remove bookmark' : 'Bookmark'}
-                    >
-                      {isFav ? <BookmarkCheck className="w-3.5 h-3.5 fill-amber-400" /> : <Bookmark className="w-3.5 h-3.5" />}
-                    </button>
+                    <div className="flex items-center gap-1.5 shrink-0 pt-1">
+                      <button
+                        onClick={() => speakWord(item.word)}
+                        className="p-1.5 text-stone-500 hover:text-stone-300 transition-colors rounded"
+                        title="Pronounce"
+                      >
+                        <Volume2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => onToggleFavorite(item.word)}
+                        className={`p-1.5 transition-colors rounded ${
+                          isFav ? 'text-amber-400' : 'text-stone-500 hover:text-stone-300'
+                        }`}
+                        title={isFav ? 'Remove bookmark' : 'Bookmark'}
+                      >
+                        {isFav ? <BookmarkCheck className="w-3.5 h-3.5 fill-amber-400" /> : <Bookmark className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
                   </div>
+                );
+              })}
+
+              {displayCount < filteredWords.length && (
+                <div className="pt-4 pb-2 text-center">
+                  <button
+                    onClick={() => setDisplayCount((prev) => prev + 50)}
+                    className="px-4 py-2 text-xs text-amber-300 bg-white/5 hover:bg-white/10 rounded-lg border border-white/10 transition-colors"
+                  >
+                    Load More Words ({filteredWords.length - displayCount} remaining)
+                  </button>
                 </div>
-              );
-            })
+              )}
+            </>
           )}
         </div>
       </div>

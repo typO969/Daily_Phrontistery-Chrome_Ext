@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { PhrontisteryWord, AppSettings, ArtworkBackground } from './types';
 import {
-  getAllPhrontisteryWords,
   getDailyWord,
   getFreshWord,
+  findWordByName,
+  getTotalWordsCount,
+  getAllPhrontisteryWords,
+  clearWordsCache,
   enrichWord,
-  loadExternalWordList,
 } from './data/phrontisteryWords';
 import { GIST_THEMES, getArtworkForGist } from './utils/themeAndGist';
 import { SVG_ARTWORKS } from './utils/svgArtworks';
@@ -55,7 +57,7 @@ const DEFAULT_SETTINGS: AppSettings = {
 };
 
 export default function App() {
-  const [words, setWords] = useState<PhrontisteryWord[]>(() => getAllPhrontisteryWords());
+  const [totalWordsCount, setTotalWordsCount] = useState<number>(() => getTotalWordsCount());
   const [settings, setSettings] = useState<AppSettings>(() => {
     try {
       const saved = localStorage.getItem('phrontistery_settings_v1');
@@ -75,9 +77,17 @@ export default function App() {
   });
 
   const [currentWord, setCurrentWord] = useState<PhrontisteryWord>(() => {
-    const all = getAllPhrontisteryWords();
-    // Default initial word: if daily mode, use daily word; otherwise fresh
-    return getDailyWord(new Date(), all);
+    try {
+      const saved = localStorage.getItem('phrontistery_settings_v1');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.displayMode === 'random_every_tab') {
+          const history = (parsed.viewedWordsHistory || []).map((h: { word: string }) => h.word);
+          return getFreshWord(history);
+        }
+      }
+    } catch {}
+    return getDailyWord(new Date());
   });
 
   const [artwork, setArtwork] = useState<ArtworkBackground>(() => {
@@ -98,15 +108,6 @@ export default function App() {
       console.error('Failed to persist settings', e);
     }
   }, [settings]);
-
-  // If huge-word-list.json is present in the root folder / extension, hydrate on mount
-  useEffect(() => {
-    loadExternalWordList().then((words) => {
-      if (settings.displayMode === 'daily') {
-        setCurrentWord(getDailyWord(new Date(), words));
-      }
-    });
-  }, [settings.displayMode]);
 
   // Current semantic theme
   const theme = useMemo(() => {
@@ -138,7 +139,7 @@ export default function App() {
     });
   }, []);
 
-  // Update background artwork when word changes
+  // Update background artwork when word changes (with deferred external API queries)
   useEffect(() => {
     let isCancelled = false;
 
@@ -146,76 +147,70 @@ export default function App() {
     const fastDefault = getArtworkForGist(currentWord.gist || 'linguistics_literature', currentWord.word.length);
     setArtwork(fastDefault);
 
-    // Then attempt live Public Museum API search
-    fetchPublicArtForWord(currentWord.word, currentWord.gist || 'linguistics_literature').then(
-      (matchedArt) => {
-        if (!isCancelled && matchedArt) {
-          setArtwork(matchedArt);
-        }
-      }
-    );
+    recordWordInHistory(currentWord);
 
-    // Look up real etymology if not present
-    if (!currentWord.etymology) {
-      getRealEtymology(currentWord.word).then((realEtym) => {
-        if (!isCancelled && realEtym) {
+    // Defer external API queries by 350ms so tab renders at 60fps immediately
+    const timer = setTimeout(() => {
+      if (isCancelled) return;
+
+      // Then attempt live Public Museum API search
+      fetchPublicArtForWord(currentWord.word, currentWord.gist || 'linguistics_literature').then(
+        (matchedArt) => {
+          if (!isCancelled && matchedArt) {
+            setArtwork(matchedArt);
+          }
+        }
+      );
+
+      // Look up real etymology if not present
+      if (!currentWord.etymology) {
+        getRealEtymology(currentWord.word).then((realEtym) => {
+          if (!isCancelled && realEtym) {
+            setCurrentWord((prev) => {
+              if (prev.word.toLowerCase() === currentWord.word.toLowerCase()) {
+                return { ...prev, etymology: realEtym };
+              }
+              return prev;
+            });
+          }
+        });
+      }
+
+      // Look up verified IPA if available
+      fetchVerifiedIpa(currentWord.word).then((verifiedIpa) => {
+        if (!isCancelled && verifiedIpa && verifiedIpa !== currentWord.ipa) {
           setCurrentWord((prev) => {
             if (prev.word.toLowerCase() === currentWord.word.toLowerCase()) {
-              return { ...prev, etymology: realEtym };
+              return { ...prev, ipa: verifiedIpa };
             }
             return prev;
           });
         }
       });
-    }
-
-    // Look up verified IPA if available
-    fetchVerifiedIpa(currentWord.word).then((verifiedIpa) => {
-      if (!isCancelled && verifiedIpa && verifiedIpa !== currentWord.ipa) {
-        setCurrentWord((prev) => {
-          if (prev.word.toLowerCase() === currentWord.word.toLowerCase()) {
-            return { ...prev, ipa: verifiedIpa };
-          }
-          return prev;
-        });
-      }
-    });
-
-    recordWordInHistory(currentWord);
+    }, 350);
 
     return () => {
       isCancelled = true;
+      clearTimeout(timer);
     };
-  }, [currentWord, recordWordInHistory]);
-
-  // Handle mode initial selection on mount
-  useEffect(() => {
-    if (settings.displayMode === 'random_every_tab') {
-      const viewed = (settings.viewedWordsHistory || []).map((h) => h.word.toLowerCase());
-      const fresh = getFreshWord(viewed, words);
-      setCurrentWord(fresh);
-    } else {
-      const daily = getDailyWord(new Date(), words);
-      setCurrentWord(daily);
-    }
-  }, []); // Run once on startup
+  }, [currentWord.word, currentWord.gist, recordWordInHistory]);
 
   // Action: Pick Next / Random Word
   const handleNextWord = useCallback(() => {
     const viewed = (settings.viewedWordsHistory || []).map((h) => h.word.toLowerCase());
-    const next = getFreshWord(viewed, words);
+    const next = getFreshWord(viewed);
     setCurrentWord(next);
-  }, [settings.viewedWordsHistory, words]);
+  }, [settings.viewedWordsHistory]);
 
   // Action: Select Word by name
   const handleSelectWord = useCallback(
     (targetWordName: string) => {
-      const found = words.find((w) => w.word.toLowerCase() === targetWordName.toLowerCase());
+      const found = findWordByName(targetWordName);
       if (found) {
         setCurrentWord(found);
       }
     },
-    [words]
+    []
   );
 
   // Action: Toggle Favorite
@@ -271,9 +266,10 @@ export default function App() {
 
     // Persist custom words in localStorage
     localStorage.setItem('phrontistery_custom_words', JSON.stringify(validated));
-    const combined = [...validated, ...getAllPhrontisteryWords()];
-    setWords(combined);
-    return combined.length;
+    clearWordsCache();
+    const newTotal = getTotalWordsCount();
+    setTotalWordsCount(newTotal);
+    return newTotal;
   };
 
   // Clear viewed history
@@ -334,7 +330,9 @@ export default function App() {
           src={artwork.url}
           alt={artwork.title}
           referrerPolicy="no-referrer"
-          className={`absolute inset-0 w-full h-full object-cover transition-all duration-1000 ${
+          decoding="async"
+          loading="eager"
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
             settings.animationSpeed === 'normal'
               ? 'animate-ken-burns-normal'
               : settings.animationSpeed === 'gentle'
@@ -342,6 +340,9 @@ export default function App() {
               : ''
           }`}
           style={{
+            willChange: settings.animationSpeed !== 'off' ? 'transform' : 'auto',
+            transform: 'translate3d(0, 0, 0)',
+            backfaceVisibility: 'hidden',
             filter: isArtFocusMode
               ? 'brightness(0.95) saturate(1.25) contrast(1.05)'
               : 'brightness(0.78) saturate(1.2) contrast(1.05)',
@@ -451,7 +452,7 @@ export default function App() {
       {settings.components.showTicker && (
         <PreviousWordsTicker
           history={settings.viewedWordsHistory || []}
-          totalWordsCount={words.length}
+          totalWordsCount={totalWordsCount}
           theme={theme}
           onSelectWord={handleSelectWord}
           onClearHistory={handleClearHistory}
@@ -465,7 +466,7 @@ export default function App() {
         settings={settings}
         onUpdateSettings={setSettings}
         onImportCustomWords={handleImportCustomWords}
-        totalWordsCount={words.length}
+        totalWordsCount={totalWordsCount}
         onOpenColophon={() => setIsColophonOpen(true)}
       />
 
@@ -473,7 +474,7 @@ export default function App() {
       <ArchiveDrawer
         isOpen={isArchiveOpen}
         onClose={() => setIsArchiveOpen(false)}
-        words={words}
+        words={isArchiveOpen ? getAllPhrontisteryWords() : []}
         favorites={settings.favoriteWordList || []}
         history={settings.viewedWordsHistory || []}
         onSelectWord={handleSelectWord}

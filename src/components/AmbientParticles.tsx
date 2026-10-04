@@ -8,21 +8,29 @@ interface AmbientParticlesProps {
 export const AmbientParticles: React.FC<AmbientParticlesProps> = ({ enabled, accentColor }) => {
   if (!enabled) return null;
 
-  // Generate deterministic gentle floating particles
+  // Reduced, highly efficient particle set with zero box-shadow filter passes
   const particles = useMemo(() => {
-    return Array.from({ length: 24 }).map((_, i) => ({
+    return Array.from({ length: 12 }).map((_, i) => ({
       id: i,
-      x: (i * 17 + 7) % 100,
-      y: (i * 23 + 13) % 100,
-      size: 1.5 + (i % 3) * 1.2,
-      duration: 18 + (i % 12) * 2,
-      delay: (i % 8) * 1.5,
-      opacity: 0.15 + (i % 4) * 0.1,
+      x: (i * 19 + 7) % 94 + 3,
+      y: (i * 29 + 11) % 92 + 4,
+      size: 2 + (i % 3) * 1.5,
+      duration: 22 + (i % 6) * 3,
+      delay: (i % 5) * 1.5,
+      opacity: 0.2 + (i % 3) * 0.15,
     }));
   }, []);
 
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none z-10" aria-hidden="true">
+    <div
+      className="absolute inset-0 overflow-hidden pointer-events-none z-10"
+      aria-hidden="true"
+      style={{
+        contain: 'strict',
+        willChange: 'transform',
+        transform: 'translate3d(0, 0, 0)',
+      }}
+    >
       {particles.map((p) => (
         <span
           key={p.id}
@@ -34,24 +42,24 @@ export const AmbientParticles: React.FC<AmbientParticlesProps> = ({ enabled, acc
             height: `${p.size}px`,
             backgroundColor: accentColor || '#f59e0b',
             opacity: p.opacity,
-            boxShadow: `0 0 ${p.size * 3}px ${accentColor || '#f59e0b'}`,
-            animation: `ambient-float ${p.duration}s ease-in-out ${p.delay}s infinite alternate`,
+            willChange: 'transform, opacity',
+            animation: `ambient-drift ${p.duration}s ease-in-out ${p.delay}s infinite alternate`,
           }}
         />
       ))}
       <style>{`
-        @keyframes ambient-float {
+        @keyframes ambient-drift {
           0% {
-            transform: translate(0, 0) scale(0.9);
-            opacity: 0.1;
+            transform: translate3d(0, 0, 0);
+            opacity: 0.15;
           }
           50% {
-            transform: translate(15px, -25px) scale(1.15);
+            transform: translate3d(12px, -18px, 0);
             opacity: 0.35;
           }
           100% {
-            transform: translate(-15px, -50px) scale(0.85);
-            opacity: 0.1;
+            transform: translate3d(-12px, -36px, 0);
+            opacity: 0.15;
           }
         }
       `}</style>

@@ -458,9 +458,9 @@ export const WordDisplay: React.FC<WordDisplayProps> = ({
         <div className="flex-1 flex flex-col justify-center items-center w-full my-auto transition-all duration-500">
           <div
             className={`${getCardWidthClass('museum_placard')} rounded-2xl border ${
-              isTranslucent ? 'border-white/20 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.5)]' : 'border-white/10 shadow-2xl'
+              isTranslucent ? 'border-white/20 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,0.4)] transform-gpu' : 'border-white/10 shadow-2xl'
             } transition-all duration-500 relative ${getCardPlacementClasses('museum_placard')}`}
-            style={{ backgroundColor: `rgba(18, 16, 14, ${effectiveOpacity})` }}
+            style={{ backgroundColor: `rgba(18, 16, 14, ${effectiveOpacity})`, transform: 'translate3d(0, 0, 0)' }}
           >
             {/* Top category & actions */}
             <div className="flex items-center justify-between gap-4 mb-6 text-xs text-stone-400 font-sans-ui border-b border-white/10 pb-4">
@@ -555,9 +555,9 @@ export const WordDisplay: React.FC<WordDisplayProps> = ({
         <div className={`flex-1 flex flex-col justify-center w-full transition-all duration-500 ${boxAlignment === 'center' ? 'my-auto' : 'translate-y-10 sm:translate-y-14 md:translate-y-20 lg:translate-y-24 xl:translate-y-28 2xl:translate-y-36'}`}>
           <div
             className={`${getCardWidthClass('monograph')} rounded-2xl border ${
-              isTranslucent ? 'border-white/20 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.5)]' : 'border-white/10 shadow-2xl'
+              isTranslucent ? 'border-white/20 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,0.4)] transform-gpu' : 'border-white/10 shadow-2xl'
             } transition-all duration-500 relative ${getCardPlacementClasses('monograph')}`}
-            style={{ backgroundColor: `rgba(18, 16, 14, ${effectiveOpacity})` }}
+            style={{ backgroundColor: `rgba(18, 16, 14, ${effectiveOpacity})`, transform: 'translate3d(0, 0, 0)' }}
           >
             {/* Header Metadata */}
             <div className="flex items-center justify-between gap-4 text-xs text-stone-400 font-sans-ui border-b border-white/10 pb-4 mb-6">
@@ -737,9 +737,9 @@ export const WordDisplay: React.FC<WordDisplayProps> = ({
         <div className={`flex-1 flex flex-col ${boxAlignment === 'center' ? 'justify-center my-auto' : 'justify-end mb-[60px] sm:mb-[80px] md:mb-[95px] 2xl:mb-[100px]'} w-full transition-all duration-500`}>
           <div
             className={`${getCardWidthClass('split_curatorial')} rounded-2xl overflow-hidden border ${
-              isTranslucent ? 'border-white/20 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.5)]' : 'border-white/10 shadow-2xl'
+              isTranslucent ? 'border-white/20 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,0.4)] transform-gpu' : 'border-white/10 shadow-2xl'
             } transition-all duration-500 grid grid-cols-1 md:grid-cols-12 ${getCardPlacementClasses('split_curatorial')}`}
-            style={{ backgroundColor: `rgba(18, 16, 14, ${effectiveOpacity})` }}
+            style={{ backgroundColor: `rgba(18, 16, 14, ${effectiveOpacity})`, transform: 'translate3d(0, 0, 0)' }}
           >
             {/* Left Art Plate */}
             <div className="md:col-span-5 xl:col-span-5 relative min-h-[260px] md:min-h-[460px] 2xl:min-h-[520px] overflow-hidden group">
@@ -834,9 +834,9 @@ export const WordDisplay: React.FC<WordDisplayProps> = ({
         <div className={`flex-1 flex flex-col justify-center w-full transition-all duration-500 ${boxAlignment === 'center' ? 'my-auto' : '-translate-y-12 sm:-translate-y-16 md:-translate-y-20 2xl:-translate-y-24'}`}>
           <div
             className={`${getCardWidthClass('broadsheet')} rounded-2xl border ${
-              isTranslucent ? 'border-white/20 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.5)]' : 'border-white/10 shadow-2xl'
+              isTranslucent ? 'border-white/20 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,0.4)] transform-gpu' : 'border-white/10 shadow-2xl'
             } transition-all duration-500 text-left ${getCardPlacementClasses('broadsheet')}`}
-            style={{ backgroundColor: `rgba(18, 16, 14, ${effectiveOpacity})` }}
+            style={{ backgroundColor: `rgba(18, 16, 14, ${effectiveOpacity})`, transform: 'translate3d(0, 0, 0)' }}
           >
             <div className="border-b-2 border-stone-100/20 pb-4 mb-6 flex items-center justify-between gap-4 flex-wrap">
               <span className="font-cinzel text-xs tracking-widest uppercase text-stone-400">The Scholastic Gazette</span>
