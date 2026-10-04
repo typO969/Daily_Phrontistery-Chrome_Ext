@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Volume2, Bookmark, BookmarkCheck, Search, Sparkles, Compass, Feather, Trees, Moon, Columns, BookOpen, Activity, Brain, Crown, ExternalLink, Maximize2, Minimize2, Monitor } from 'lucide-react';
-import { PhrontisteryWord, ColorTheme, LayoutStyle, ComponentVisibility, ArtworkBackground, PronunciationStyle, BoxScale, BoxAlignment } from '../types';
+import { PhrontisteryWord, ColorTheme, LayoutStyle, ComponentVisibility, ArtworkBackground, PronunciationStyle, BoxAlignment } from '../types';
 import { formatPartOfSpeech, GIST_LABELS } from '../utils/themeAndGist';
 import { speakWord } from '../utils/audioSynth';
 import { generatePhoneticRespelling, generateApproxIpa } from '../utils/pronunciationService';
@@ -12,9 +12,7 @@ interface WordDisplayProps {
   components: ComponentVisibility;
   fontFamily: 'cormorant' | 'playfair' | 'cinzel' | 'instrument' | 'sans';
   wordSize: 'compact' | 'balanced' | 'monumental';
-  boxScale?: BoxScale;
   boxAlignment?: BoxAlignment;
-  onToggleBoxScale?: () => void;
   overlayOpacity: number;
   frameOpacity?: number;
   isFrameTranslucent?: boolean;
@@ -102,9 +100,7 @@ export const WordDisplay: React.FC<WordDisplayProps> = ({
   components,
   fontFamily,
   wordSize,
-  boxScale = 'immersive',
   boxAlignment = 'archetype',
-  onToggleBoxScale,
   overlayOpacity,
   frameOpacity,
   isFrameTranslucent,
@@ -122,7 +118,7 @@ export const WordDisplay: React.FC<WordDisplayProps> = ({
 
   const effectiveOpacity = isFrameTranslucent !== false ? (frameOpacity ?? overlayOpacity ?? 0.65) : 1.0;
   const isTranslucent = effectiveOpacity < 0.98;
-  const isImmersive = boxScale === 'immersive';
+  const isImmersive = false;
 
   // Deterministic 1/3 left vs 1/3 right placement for Zenith Minimalist per word
   const isZenithRight = useMemo(() => {
@@ -131,30 +127,6 @@ export const WordDisplay: React.FC<WordDisplayProps> = ({
   }, [word.word]);
 
   const gistInfo = word.gist ? GIST_LABELS[word.gist] : GIST_LABELS.linguistics_literature;
-
-  // Scale toggle button for card headers (explicitly labelled 4K Scale)
-  const renderScaleButton = () => {
-    if (!onToggleBoxScale) return null;
-    return (
-      <button
-        onClick={onToggleBoxScale}
-        className="hover:text-amber-200 transition-colors font-mono-data text-[11px] px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 border border-white/10 flex items-center gap-1.5"
-        title={isImmersive ? 'Switch to Classic Intimate card scale' : 'Switch to 1.5x Grand & Immersive (4K) scale'}
-      >
-        {isImmersive ? (
-          <>
-            <Monitor className="w-3 h-3 text-amber-300" />
-            <span>4K Scale: ON</span>
-          </>
-        ) : (
-          <>
-            <Monitor className="w-3 h-3 text-stone-400" />
-            <span>4K Scale: OFF</span>
-          </>
-        )}
-      </button>
-    );
-  };
 
   // Opacity cycle button for card headers
   const renderOpacityButton = () => {
@@ -267,54 +239,30 @@ export const WordDisplay: React.FC<WordDisplayProps> = ({
 
     switch (wordSize) {
       case 'compact':
-        if (isImmersive) {
-          if (len >= 14) return 'text-3xl sm:text-4xl lg:text-5xl 2xl:text-6xl';
-          return 'text-4xl sm:text-5xl lg:text-6xl 2xl:text-7xl';
-        }
         if (len >= 14) return 'text-3xl sm:text-4xl lg:text-5xl';
         return 'text-4xl sm:text-5xl lg:text-6xl';
       case 'monumental':
-        if (isImmersive) {
-          if (len >= 16) return 'text-5xl sm:text-6xl lg:text-7xl 2xl:text-8xl tracking-tight';
-          if (len >= 12) return 'text-6xl sm:text-7xl lg:text-8xl 2xl:text-9xl tracking-tight';
-          if (len >= 8) return 'text-6xl sm:text-8xl lg:text-9xl 2xl:text-[10rem] tracking-tight';
-          return 'text-7xl sm:text-8xl lg:text-9xl 2xl:text-[11.5rem] tracking-tight';
-        }
         if (len >= 16) return 'text-4xl sm:text-5xl lg:text-6xl 2xl:text-7xl tracking-tight';
         if (len >= 12) return 'text-5xl sm:text-6xl lg:text-7xl 2xl:text-8xl tracking-tight';
         if (len >= 8) return 'text-5xl sm:text-6xl lg:text-8xl 2xl:text-9xl tracking-tight';
         return 'text-6xl sm:text-7xl lg:text-9xl tracking-tight';
       case 'balanced':
       default:
-        if (isImmersive) {
-          if (len >= 14) return 'text-4xl sm:text-5xl lg:text-6xl 2xl:text-7xl tracking-normal';
-          return 'text-5xl sm:text-6xl lg:text-7xl 2xl:text-8xl tracking-normal';
-        }
         if (len >= 14) return 'text-4xl sm:text-5xl lg:text-6xl tracking-normal';
         return 'text-5xl sm:text-6xl lg:text-7xl tracking-normal';
     }
   };
 
   // Adaptive typography for the Split Curatorial dual-column layout
-  // Calibrated so that regular/classic size + monumental scale never overflows or clips the right column
   const getSplitCuratorialWordSizeClass = () => {
     const len = (word.word || '').length;
 
     if (wordSize === 'monumental') {
-      if (!isImmersive) {
-        // Regular / Classic scale (~440px text column inside max-w-4xl box)
-        if (len >= 16) return 'text-2xl sm:text-3xl lg:text-[2.15rem] leading-tight';
-        if (len >= 13) return 'text-2xl sm:text-3xl lg:text-4xl leading-tight';
-        if (len >= 10) return 'text-3xl sm:text-4xl lg:text-[2.65rem] leading-tight';
-        if (len >= 7) return 'text-3xl sm:text-4xl lg:text-5xl leading-none';
-        return 'text-4xl sm:text-5xl lg:text-[3.4rem] leading-none';
-      }
-      // Immersive scale (spacious 700-950px column on 4K)
-      if (len >= 16) return 'text-3xl sm:text-4xl lg:text-5xl 2xl:text-6xl';
-      if (len >= 12) return 'text-3xl sm:text-4xl lg:text-5xl 2xl:text-7xl';
-      if (len >= 9) return 'text-4xl sm:text-5xl lg:text-6xl 2xl:text-8xl';
-      if (len >= 6) return 'text-4xl sm:text-6xl lg:text-7xl 2xl:text-8xl';
-      return 'text-5xl sm:text-6xl lg:text-8xl 2xl:text-9xl';
+      if (len >= 16) return 'text-2xl sm:text-3xl lg:text-[2.15rem] leading-tight';
+      if (len >= 13) return 'text-2xl sm:text-3xl lg:text-4xl leading-tight';
+      if (len >= 10) return 'text-3xl sm:text-4xl lg:text-[2.65rem] leading-tight';
+      if (len >= 7) return 'text-3xl sm:text-4xl lg:text-5xl leading-none';
+      return 'text-4xl sm:text-5xl lg:text-[3.4rem] leading-none';
     }
 
     if (wordSize === 'compact') {
@@ -324,15 +272,10 @@ export const WordDisplay: React.FC<WordDisplayProps> = ({
     }
 
     // Default 'balanced'
-    if (!isImmersive) {
-      if (len >= 14) return 'text-2xl sm:text-3xl lg:text-3xl';
-      if (len >= 10) return 'text-2xl sm:text-3xl lg:text-4xl';
-      if (len >= 7) return 'text-3xl sm:text-4xl lg:text-[2.65rem]';
-      return 'text-3xl sm:text-4xl lg:text-5xl';
-    }
-    if (len >= 14) return 'text-3xl sm:text-4xl lg:text-5xl';
-    if (len >= 9) return 'text-3xl sm:text-5xl lg:text-6xl';
-    return 'text-4xl sm:text-6xl lg:text-7xl';
+    if (len >= 14) return 'text-2xl sm:text-3xl lg:text-3xl';
+    if (len >= 10) return 'text-2xl sm:text-3xl lg:text-4xl';
+    if (len >= 7) return 'text-3xl sm:text-4xl lg:text-[2.65rem]';
+    return 'text-3xl sm:text-4xl lg:text-5xl';
   };
 
   const handlePronounce = () => {
@@ -359,13 +302,8 @@ export const WordDisplay: React.FC<WordDisplayProps> = ({
     window.location.href = targetUrl;
   };
 
-  // Word Box width scaling:
-  // - Full & More Immersive Display Box: expands by 1.5x up to ~93% of the browser real-estate on 4K.
-  // - Smaller Display Box: matches the original classic proportions from mockups #2, #3, #4, #5.
+  // Word Box width scaling matching original mockup proportions
   const getCardWidthClass = (preset: LayoutStyle) => {
-    if (isImmersive) {
-      return 'w-full max-w-[93vw] 2xl:max-w-[93vw] p-8 sm:p-12 md:p-14 2xl:p-16 3xl:p-20';
-    }
     switch (preset) {
       case 'museum_placard':
         return 'w-full max-w-3xl lg:max-w-4xl p-6 sm:p-10 md:p-12';
@@ -390,10 +328,6 @@ export const WordDisplay: React.FC<WordDisplayProps> = ({
   // - 'archetype': Signature bespoke placement matching user mockups #2, #3, #4, #5
   // - 'center': Classic centered layout on all axes
   const getCardPlacementClasses = (preset: LayoutStyle) => {
-    if (isImmersive) {
-      return 'mx-auto text-left';
-    }
-
     if (boxAlignment === 'center') {
       return 'mx-auto text-center';
     }
@@ -406,24 +340,24 @@ export const WordDisplay: React.FC<WordDisplayProps> = ({
 
       case 'monograph':
         // 2: EDITORIAL MONOGRAPH (Mockup #2.png):
-        // "live moderately left of center (the box's center should be around at about 1/3)"
+        // Horizontal: box center around 1/3 mark from left
         return 'mr-auto ml-4 sm:ml-8 md:ml-12 lg:ml-[12vw] xl:ml-[14vw] 2xl:ml-[15vw] text-left';
 
       case 'zenith_minimal':
         // 3: ZENITH MINIMALIST (Mockup #3.png):
-        // "horizontally it needs to be centered at 1/3 left or 1/3 right of true center"
+        // Horizontal: anchored at 1/3 left or 1/3 right of screen
         return isZenithRight
-          ? 'ml-auto mr-4 sm:mr-8 md:mr-12 lg:mr-[14vw] xl:mr-[18vw] 2xl:mr-[20vw] text-left sm:text-right'
+          ? 'ml-auto mr-4 sm:mr-8 md:mr-12 lg:mr-[14vw] xl:mr-[18vw] 2xl:mr-[20vw] text-right'
           : 'mr-auto ml-4 sm:ml-8 md:ml-12 lg:ml-[14vw] xl:ml-[18vw] 2xl:ml-[20vw] text-left';
 
       case 'split_curatorial':
         // 4: SPLIT CURATORIAL (Mockup #4.png):
-        // "slightly more left than #2 (monograph)"
+        // Further left than Monograph
         return 'mr-auto ml-3 sm:ml-6 md:ml-8 lg:ml-[7vw] xl:ml-[9vw] 2xl:ml-[10vw] text-left';
 
       case 'broadsheet':
         // 5: BROADSHEET FOLIO (Mockup #5.png):
-        // "rest somewhere between 1/3 and true center of center"
+        // Rest somewhere between 1/3 and true center
         return 'mr-auto ml-4 sm:ml-8 md:ml-14 lg:ml-[14vw] xl:ml-[16vw] 2xl:ml-[18vw] text-left';
 
       default:
@@ -471,7 +405,6 @@ export const WordDisplay: React.FC<WordDisplayProps> = ({
                 </span>
               )}
               <div className="flex items-center gap-2.5 ml-auto flex-wrap justify-end">
-                {renderScaleButton()}
                 {renderOpacityButton()}
                 <button
                   onClick={handleCopyWord}
@@ -572,7 +505,6 @@ export const WordDisplay: React.FC<WordDisplayProps> = ({
                 )}
               </div>
               <div className="flex items-center gap-2.5 flex-wrap justify-end">
-                {renderScaleButton()}
                 {renderOpacityButton()}
                 <button
                   onClick={onToggleFavorite}
@@ -661,8 +593,8 @@ export const WordDisplay: React.FC<WordDisplayProps> = ({
               boxAlignment === 'center'
                 ? 'justify-center'
                 : isZenithRight
-                ? 'justify-center sm:justify-end'
-                : 'justify-center sm:justify-start'
+                ? 'justify-end'
+                : 'justify-start'
             }`}>
               {components.showGistBadge && (
                 <div className="inline-flex items-center gap-1.5 uppercase tracking-widest text-amber-300/80 font-medium">
@@ -671,7 +603,6 @@ export const WordDisplay: React.FC<WordDisplayProps> = ({
                 </div>
               )}
               <div className="inline-flex items-center gap-2 ml-2">
-                {renderScaleButton()}
                 <button
                   onClick={onToggleFavorite}
                   className={`transition-colors p-1 ${isFavorite ? 'text-amber-400' : 'text-stone-400 hover:text-stone-200'}`}
@@ -683,14 +614,20 @@ export const WordDisplay: React.FC<WordDisplayProps> = ({
             </div>
 
             {components.showWord && (
-              <h1 className={`${getFontFamilyClass()} ${getWordSizeClass()} font-bold text-stone-100 mb-4 capitalize text-glow-gold drop-shadow-md`}>
+              <h1 className={`${getFontFamilyClass()} ${getWordSizeClass()} font-bold text-stone-100 mb-4 capitalize text-glow-gold drop-shadow-md ${
+                boxAlignment === 'center' ? 'text-center' : isZenithRight ? 'text-right' : 'text-left'
+              }`}>
                 {word.word}
               </h1>
             )}
 
             {(components.showPartOfSpeech || components.showPhonetics) && (
               <div className={`flex items-center gap-3 text-sm text-stone-300 mb-6 font-sans-ui ${
-                isZenithRight ? 'justify-center lg:justify-end' : 'justify-center lg:justify-start'
+                boxAlignment === 'center'
+                  ? 'justify-center'
+                  : isZenithRight
+                  ? 'justify-end'
+                  : 'justify-start'
               }`}>
                 {components.showPartOfSpeech && (
                   <span className="text-xs uppercase tracking-widest text-amber-300 font-semibold">
@@ -714,16 +651,20 @@ export const WordDisplay: React.FC<WordDisplayProps> = ({
             )}
 
             {components.showDefinition && (
-              <p className={`font-cormorant ${isImmersive ? 'text-3xl sm:text-4xl' : 'text-2xl sm:text-3xl'} text-stone-100 max-w-2xl leading-relaxed font-light drop-shadow ${
-                isZenithRight ? 'mx-auto lg:ml-auto lg:mr-0' : 'mx-auto lg:mr-auto lg:ml-0'
+              <p className={`font-cormorant text-2xl sm:text-3xl lg:text-4xl text-stone-100 max-w-2xl leading-relaxed font-light drop-shadow ${
+                boxAlignment === 'center'
+                  ? 'mx-auto text-center'
+                  : isZenithRight
+                  ? 'ml-auto mr-0 text-right'
+                  : 'mr-auto ml-0 text-left'
               }`}>
                 {word.definition}
               </p>
             )}
 
             {components.showEtymology && (
-              <div className={isZenithRight ? 'lg:text-right' : 'lg:text-left'}>
-                <EtymologySection word={word} align={isZenithRight ? 'left' : 'left'} />
+              <div className={boxAlignment === 'center' ? 'text-center' : isZenithRight ? 'text-right' : 'text-left'}>
+                <EtymologySection word={word} align={boxAlignment === 'center' ? 'center' : isZenithRight ? 'left' : 'left'} />
               </div>
             )}
           </div>
@@ -769,7 +710,6 @@ export const WordDisplay: React.FC<WordDisplayProps> = ({
                     </span>
                   )}
                   <div className="flex items-center gap-2 flex-wrap justify-end">
-                    {renderScaleButton()}
                     {renderOpacityButton()}
                     <button
                       onClick={onToggleFavorite}
@@ -842,7 +782,6 @@ export const WordDisplay: React.FC<WordDisplayProps> = ({
               <span className="font-cinzel text-xs tracking-widest uppercase text-stone-400">The Scholastic Gazette</span>
               <div className="flex items-center gap-2.5">
                 <span className="font-mono-data text-xs text-amber-300/90 mr-1">{dateString}</span>
-                {renderScaleButton()}
                 {renderOpacityButton()}
               </div>
             </div>

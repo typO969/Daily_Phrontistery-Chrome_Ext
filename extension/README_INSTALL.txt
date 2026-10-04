@@ -1,5 +1,5 @@
 =====================================================
-  DAILY PHRONTISTERY — CHROME EXTENSION (MANIFEST V3)
+  DAILY PHRONTISTERY v2.1.0 — CHROME EXTENSION (MV3)
 =====================================================
 
 The complete compiled application (assets/, icons/, index.html, manifest.json)

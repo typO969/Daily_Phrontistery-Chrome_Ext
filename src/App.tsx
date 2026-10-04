@@ -27,10 +27,10 @@ import { ColophonModal } from './components/ColophonModal';
 
 const DEFAULT_SETTINGS: AppSettings = {
   displayMode: 'daily',
-  layoutStyle: 'museum_placard',
+  layoutStyle: 'monograph',
   fontFamily: 'cormorant',
   wordSize: 'balanced',
-  boxScale: 'immersive',
+  boxAlignment: 'archetype',
   animationSpeed: 'gentle',
   enableAmbientParticles: true,
   enableAmbientSound: false,
@@ -56,17 +56,26 @@ const DEFAULT_SETTINGS: AppSettings = {
   viewedWordsHistory: [],
 };
 
+const SETTINGS_KEY = 'phrontistery_settings_v2';
+const LEGACY_SETTINGS_KEY = 'phrontistery_settings_v1';
+
 export default function App() {
   const [totalWordsCount, setTotalWordsCount] = useState<number>(() => getTotalWordsCount());
   const [settings, setSettings] = useState<AppSettings>(() => {
     try {
-      const saved = localStorage.getItem('phrontistery_settings_v1');
+      const saved = localStorage.getItem(SETTINGS_KEY) || localStorage.getItem(LEGACY_SETTINGS_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
+        // Guarantee the signature archetype (monograph) is used if legacy was museum_placard or missing
+        const layoutStyle = (!parsed.layoutStyle || parsed.layoutStyle === 'museum_placard')
+          ? 'monograph'
+          : parsed.layoutStyle;
+        const boxAlignment = parsed.boxAlignment || 'archetype';
         return {
           ...DEFAULT_SETTINGS,
           ...parsed,
-          boxScale: parsed.boxScale || 'immersive',
+          layoutStyle,
+          boxAlignment,
           components: { ...DEFAULT_SETTINGS.components, ...(parsed.components || {}) },
         };
       }
@@ -78,7 +87,7 @@ export default function App() {
 
   const [currentWord, setCurrentWord] = useState<PhrontisteryWord>(() => {
     try {
-      const saved = localStorage.getItem('phrontistery_settings_v1');
+      const saved = localStorage.getItem(SETTINGS_KEY) || localStorage.getItem(LEGACY_SETTINGS_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed.displayMode === 'random_every_tab') {
@@ -103,7 +112,9 @@ export default function App() {
   // Save settings whenever changed
   useEffect(() => {
     try {
-      localStorage.setItem('phrontistery_settings_v1', JSON.stringify(settings));
+      const serialized = JSON.stringify(settings);
+      localStorage.setItem(SETTINGS_KEY, serialized);
+      localStorage.setItem(LEGACY_SETTINGS_KEY, serialized);
     } catch (e) {
       console.error('Failed to persist settings', e);
     }
@@ -396,13 +407,6 @@ export default function App() {
         isArtFocusMode={isArtFocusMode}
         onToggleArtFocus={() => setIsArtFocusMode(!isArtFocusMode)}
         onOpenColophon={() => setIsColophonOpen(true)}
-        boxScale={settings.boxScale || 'immersive'}
-        onToggleBoxScale={() => {
-          setSettings((p) => ({
-            ...p,
-            boxScale: p.boxScale === 'immersive' ? 'classic' : 'immersive',
-          }));
-        }}
       />
 
       {/* Word of the Day Presentation */}
@@ -418,14 +422,7 @@ export default function App() {
           components={settings.components}
           fontFamily={settings.fontFamily}
           wordSize={settings.wordSize}
-          boxScale={settings.boxScale || 'immersive'}
           boxAlignment={settings.boxAlignment || 'archetype'}
-          onToggleBoxScale={() => {
-            setSettings((p) => ({
-              ...p,
-              boxScale: p.boxScale === 'immersive' ? 'classic' : 'immersive',
-            }));
-          }}
           overlayOpacity={settings.overlayOpacity}
           frameOpacity={settings.frameOpacity}
           isFrameTranslucent={settings.isFrameTranslucent}

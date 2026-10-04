@@ -59,34 +59,34 @@ export const LayoutStudioModal: React.FC<LayoutStudioModalProps> = ({
     desc: string;
   }[] = [
     {
-      id: 'museum_placard',
-      name: '1. Museum Placard',
-      placement: 'Centered (Gallery Placard)',
-      desc: 'Balanced museum gallery placard with refined framing and accession notes. Centered on all axes.',
-    },
-    {
       id: 'monograph',
-      name: '2. Editorial Monograph',
+      name: '1. Editorial Monograph (Signature)',
       placement: 'Left of Center (1/3 mark) · Lower Third',
-      desc: 'Box center positioned at ~1/3 from viewport left and shifted slightly below center for contemplative balance.',
-    },
-    {
-      id: 'zenith_minimal',
-      name: '3. Zenith Minimalist',
-      placement: 'Alternating 1/3 Left or Right · +50px Lift',
-      desc: 'Unframed pure typography shifted 50px upward, anchoring at 1/3 left or 1/3 right per word.',
+      desc: 'Signature book layout positioned at ~1/3 from viewport left and shifted slightly below center for contemplative balance.',
     },
     {
       id: 'split_curatorial',
-      name: '4. Split Curatorial',
+      name: '2. Split Curatorial',
       placement: 'Far Left Anchor · ~100px From Bottom',
       desc: 'Asymmetric dual columns (plate left, text right), anchored ~100px from page bottom leaving top sky open.',
     },
     {
       id: 'broadsheet',
-      name: '5. Broadsheet Folio',
+      name: '3. Broadsheet Folio',
       placement: 'Between 1/3 & Center · Subtly North (+60px)',
       desc: 'Dual-column gazette folio resting between 1/3 and true center, elevated ~60px north of center.',
+    },
+    {
+      id: 'zenith_minimal',
+      name: '4. Zenith Minimalist',
+      placement: 'Alternating 1/3 Left or Right · +50px Lift',
+      desc: 'Unframed pure typography shifted 50px upward, anchoring at 1/3 left or 1/3 right per word.',
+    },
+    {
+      id: 'museum_placard',
+      name: '5. Museum Placard (Centered)',
+      placement: 'Centered (Gallery Placard)',
+      desc: 'Balanced museum gallery placard with refined framing and accession notes. Centered on all axes.',
     },
   ];
 
@@ -191,86 +191,7 @@ export const LayoutStudioModal: React.FC<LayoutStudioModalProps> = ({
           </div>
         </div>
 
-        {/* Section 3: 4K Display Mode & Word Box Scale */}
-        <div className="mb-6 p-4 rounded-xl bg-white/[0.03] border border-white/10">
-          <div className="flex items-center justify-between mb-3">
-            <label className="text-xs uppercase tracking-wider text-amber-400 font-semibold flex items-center gap-1.5">
-              <Monitor className="w-3.5 h-3.5" />
-              <span>4K & Ultra-HD Display Mode (1.5x Scale)</span>
-            </label>
-            <div className="flex items-center gap-2">
-              <span className={`text-[10px] font-mono-data px-2 py-0.5 rounded border transition-colors ${
-                (settings.boxScale || 'immersive') === 'immersive'
-                  ? 'bg-amber-400/20 text-amber-300 border-amber-400/40'
-                  : 'bg-white/5 text-stone-400 border-white/10'
-              }`}>
-                {(settings.boxScale || 'immersive') === 'immersive' ? '4K Ultra-HD Active' : 'Classic Scale'}
-              </span>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={(settings.boxScale || 'immersive') === 'immersive'}
-                  onChange={(e) =>
-                    onUpdateSettings((p) => ({
-                      ...p,
-                      boxScale: e.target.checked ? 'immersive' : 'classic',
-                    }))
-                  }
-                  className="sr-only peer"
-                />
-                <div className="w-9 h-5 bg-stone-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
-              </label>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <button
-              onClick={() => onUpdateSettings((p) => ({ ...p, boxScale: 'immersive' }))}
-              className={`text-left p-3.5 rounded-xl border transition-all ${
-                (settings.boxScale || 'immersive') === 'immersive'
-                  ? 'border-amber-400 bg-amber-400/15 text-stone-100 shadow-md ring-1 ring-amber-400/40'
-                  : 'border-white/10 bg-white/5 hover:bg-white/10 text-stone-300'
-              }`}
-            >
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="font-semibold text-xs flex items-center gap-1.5">
-                  <Monitor className="w-3.5 h-3.5 text-amber-300" />
-                  Full & More Immersive Display Box (1.5x / 93%)
-                </span>
-                {(settings.boxScale || 'immersive') === 'immersive' && (
-                  <Check className="w-4 h-4 text-amber-400 shrink-0" />
-                )}
-              </div>
-              <p className="text-[11px] text-stone-400 leading-snug">
-                Increases word box size by at least 1.5x (up to 93% of browser real-estate on 4K) for a grand, cinematic reading experience.
-              </p>
-            </button>
-
-            <button
-              onClick={() => onUpdateSettings((p) => ({ ...p, boxScale: 'classic' }))}
-              className={`text-left p-3.5 rounded-xl border transition-all ${
-                settings.boxScale === 'classic'
-                  ? 'border-amber-400 bg-amber-400/15 text-stone-100 shadow-md ring-1 ring-amber-400/40'
-                  : 'border-white/10 bg-white/5 hover:bg-white/10 text-stone-300'
-              }`}
-            >
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="font-semibold text-xs flex items-center gap-1.5">
-                  <Minimize2 className="w-3.5 h-3.5 text-stone-400" />
-                  Smaller Display Box (Classic Placard)
-                </span>
-                {settings.boxScale === 'classic' && (
-                  <Check className="w-4 h-4 text-amber-400 shrink-0" />
-                )}
-              </div>
-              <p className="text-[11px] text-stone-400 leading-snug">
-                Traditional compact word box scale (max-w-4xl) with authentic asymmetric anchoring as designed in the layout mockups (#2, #3, #4, #5).
-              </p>
-            </button>
-          </div>
-        </div>
-
-        {/* Section 2: Component Visibility & Hierarchy */}
+        {/* Section 3: Component Visibility & Hierarchy */}
         <div className="mb-6">
           <label className="text-xs uppercase tracking-wider text-amber-400 font-semibold mb-3 flex items-center gap-1.5">
             <Eye className="w-3.5 h-3.5" />

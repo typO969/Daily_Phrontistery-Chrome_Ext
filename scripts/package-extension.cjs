@@ -47,6 +47,23 @@ async function syncAndPackageExtension() {
     }
   }
 
+  // Also ensure extension/manifest.json has matching version from package.json
+  const pkgPath = path.join(root, 'package.json');
+  const manifestPath = path.join(extDir, 'manifest.json');
+  if (fs.existsSync(pkgPath) && fs.existsSync(manifestPath)) {
+    try {
+      const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      if (pkg.version && manifest.version !== pkg.version) {
+        manifest.version = pkg.version;
+        fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+        console.log(`✓ Synchronized manifest.json version to v${pkg.version}`);
+      }
+    } catch (e) {
+      console.warn('Could not sync manifest version:', e);
+    }
+  }
+
   // 2. Package everything into a standalone zip
   const zip = new JSZip();
   function addDir(dirPath, zipFolder) {

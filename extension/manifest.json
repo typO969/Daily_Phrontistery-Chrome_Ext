@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Daily Phrontistery — Word of the Day New Tab",
-  "version": "1.9.7",
+  "version": "2.1.0",
   "description": "Replaces your new tab page with rare words, semantic fine art backgrounds, and scholarly etymology.",
   "chrome_url_overrides": {
     "newtab": "index.html"

@@ -68,24 +68,32 @@ async function generateIconPngBlob(size: number): Promise<Blob> {
 export async function downloadChromeExtensionPackage(): Promise<void> {
   // 1. Prioritize downloading the complete pre-built standalone extension bundle
   // (contains compiled React app, assets, CSS, icons, and zero-redirect manifest)
-  try {
-    const res = await fetch('./daily-phrontistery-extension.zip');
-    if (res.ok) {
-      const blob = await res.blob();
-      if (blob.size > 10000) {
-        const downloadUrl = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = downloadUrl;
-        a.download = 'daily-phrontistery-chrome-extension.zip';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(downloadUrl);
-        return;
+  const candidateUrls = [
+    '/daily-phrontistery-extension.zip',
+    './daily-phrontistery-extension.zip',
+    'daily-phrontistery-extension.zip',
+  ];
+
+  for (const url of candidateUrls) {
+    try {
+      const res = await fetch(url);
+      if (res.ok) {
+        const blob = await res.blob();
+        if (blob.size > 10000) {
+          const downloadUrl = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = downloadUrl;
+          a.download = 'daily-phrontistery-chrome-extension-v2.1.0.zip';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(downloadUrl);
+          return;
+        }
       }
+    } catch {
+      // try next candidate url
     }
-  } catch (err) {
-    console.debug('Direct zip download fell back to client-side packaging:', err);
   }
 
   // 2. Client-side fallback packager
@@ -95,7 +103,7 @@ export async function downloadChromeExtensionPackage(): Promise<void> {
   const manifest = {
     manifest_version: 3,
     name: 'Daily Phrontistery — Word of the Day New Tab',
-    version: '1.9.7',
+    version: '2.1.0',
     description: 'Replaces your new tab page with rare words, semantic fine art backgrounds, and scholarly etymology.',
     chrome_url_overrides: {
       newtab: 'index.html',

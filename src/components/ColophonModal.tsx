@@ -229,7 +229,7 @@ export const ColophonModal: React.FC<ColophonModalProps> = ({ isOpen, onClose, t
 
         {/* Footer */}
         <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-[11px] text-stone-500 font-sans-ui">
-          <span>The Daily Phrontistery · Manifest V3 Compliant</span>
+          <span>The Daily Phrontistery v2.1.0 · Manifest V3 Compliant</span>
           <button
             onClick={onClose}
             className="px-4 py-1.5 rounded-lg bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 transition-colors font-medium"
